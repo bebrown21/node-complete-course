@@ -6,7 +6,7 @@ exports.getLogin = (req, res, next) => {
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
-    isAuthenticated: false
+    errorMessage: req.flash('error')
   });
 };
 
@@ -14,7 +14,7 @@ exports.getSignup = (req, res, next) => {
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
-    isAuthenticated: false
+    errorMessage: req.flash('error')
   });
 };
 
@@ -24,6 +24,7 @@ exports.postLogin = (req, res, next) => {
   User.findOne({ email: email })
     .then(user => {
       if (!user) {
+        req.flash('error', 'Invalid Email.');
         res.redirect('/login');
       }
       bcrypt.compare(password, user.password)
@@ -36,7 +37,8 @@ exports.postLogin = (req, res, next) => {
               res.redirect('/');
             });
           }
-            return res.redirect('/');
+            req.flash('error', 'Invalid Password.');
+            return res.redirect('/login');
         })
         .catch(err => {
           console.log(err);
@@ -53,6 +55,7 @@ exports.postSignup = (req, res, next) => {
   User.findOne({ email: email })
     .then(userDoc => {
       if (userDoc) {
+        req.flash('error', 'Email Already Exists.');
         return res.redirect('/signup');
       }
       return bcrypt.hash(password, 12);

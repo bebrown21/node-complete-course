@@ -6,6 +6,7 @@ const MongoDBStore = require('connect-mongodb-session')(session); //pass the abo
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const csrf = require('csurf');
+const flash = require('connect-flash');
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
@@ -35,6 +36,7 @@ app.use(session({
   store: store
 })); //there are additional settings you can add for Cookies as well
 app.use(csrfProtection);
+app.use(flash());
 
 app.use((req, res, next) => {
   if (!req.session.user) {
