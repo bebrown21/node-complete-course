@@ -15,7 +15,12 @@ exports.getLogin = (req, res, next) => {
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
-    errorMessage: req.flash('error')
+    errorMessage: req.flash('error'),
+     previousUserInput: { 
+      email: '', 
+      password: ''
+    },
+    validationErrors: []
   });
 };
 
@@ -23,19 +28,35 @@ exports.getSignup = (req, res, next) => {
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
-    errorMessage: req.flash('error')
+    errorMessage: req.flash('error'),
+    previousUserInput: { 
+      email: '', 
+      password: '', 
+      confirmPassword: ''
+    },
+    validationErrors: []
   });
 };
 
 exports.postLogin = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
+  const validationErrors = validationResult(req);
+  if (!validationErrors.isEmpty()) {
+    return res.status(422)
+      .render('auth/login', {
+        path: '/login',
+        pageTitle: 'Login',
+        errorMessage: validationErrors.array()[0].msg,
+        previousUserInput: { 
+          email: email, 
+          password: password
+        },
+        validationErrors: validationErrors.array()
+    });
+  }
   User.findOne({ email: email })
     .then(user => {
-      if (!user) {
-        req.flash('error', 'Invalid Email.');
-        res.redirect('/login');
-      }
       bcrypt.compare(password, user.password)
         .then(isMatchingPassword => {
           if (isMatchingPassword) {
@@ -46,8 +67,17 @@ exports.postLogin = (req, res, next) => {
               res.redirect('/');
             });
           }
-            req.flash('error', 'Invalid Password.');
-            return res.redirect('/login');
+            return res.status(422)
+              .render('auth/login', {
+                path: '/login',
+                pageTitle: 'Login',
+                errorMessage: 'Invalid Password',
+                previousUserInput: { 
+                  email: email, 
+                  password: password
+                },
+                validationErrors: []
+            });
         })
         .catch(err => {
           console.log(err);
@@ -60,24 +90,22 @@ exports.postLogin = (req, res, next) => {
 exports.postSignup = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
-  const confirmPassword = req.body.confirmPassword;
   const validationErrors = validationResult(req);
   if (!validationErrors.isEmpty()) {
     return res.status(422)
       .render('auth/signup', {
         path: '/signup',
         pageTitle: 'Signup',
-        errorMessage: validationErrors.array()[0].msg
+        errorMessage: validationErrors.array()[0].msg,
+        previousUserInput: { 
+          email: email, 
+          password: password, 
+          confirmPassword: req.body.confirmPassword 
+        },
+        validationErrors: validationErrors.array()
     });
   }
-  User.findOne({ email: email })
-    .then(userDoc => {
-      if (userDoc) {
-        req.flash('error', 'Email Already Exists.');
-        return res.redirect('/signup');
-      }
-      return bcrypt.hash(password, 12);
-    })
+  bcrypt.hash(password, 12)
     .then(hashedPassword => {
       const user = new User({
         email: email,
@@ -94,7 +122,6 @@ exports.postSignup = (req, res, next) => {
         subject: 'Signup Succeeded!',
         html: '<h1>You Successfullying Signed Up!</h1>'
       })
-      .catch(err => console.log(err));
     })
     .catch(err => console.log(err));
 };
