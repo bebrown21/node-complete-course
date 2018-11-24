@@ -11,6 +11,7 @@
                 <li class="cart__item">
                     <h1><%= p.productId.title %></h1>
                     <h2>Quantity: <%= p.quantity %></h2>
+              
                 </li>
             <% }) %>
           </ul>
@@ -21,7 +22,7 @@
             <form action="/create-order" method="POST">
               <script
                 src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-                data-key="pk_test_hr9TMB6fSK7MXx9yyNhr3F1m"
+                data-key="add_stripe_api_key_here"
                 data-amount="<%= totalSum * 100 %>"
                 data-name="Your Order"
                 data-description="All ordered items"
