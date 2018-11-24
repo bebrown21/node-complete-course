@@ -9,6 +9,8 @@ const csrf = require('csurf');
 const flash = require('connect-flash');
 const multer = require('multer'); 
 
+const shopController = require('./controllers/shop');
+const isAuth = require('./middleware/is-auth');
 const errorController = require('./controllers/error');
 const User = require('./models/user');
 
@@ -63,12 +65,10 @@ app.use(
     store: store
   })
 );
-app.use(csrfProtection);
 app.use(flash());
 
 app.use((req, res, next) => {
   res.locals.isAuthenticated = req.session.isLoggedIn;
-  res.locals.csrfToken = req.csrfToken();
   next();
 });
 
@@ -89,6 +89,14 @@ app.use((req, res, next) => {
     });
 });
 
+app.post('/create-order', isAuth, shopController.postOrder);
+
+app.use(csrfProtection);
+app.use((req, res, next) => {
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
@@ -97,7 +105,7 @@ app.get('/500', errorController.get500);
 
 app.use(errorController.get404);
 
-app.use((error, req, res, next) => {
+app.use((req, res, next) => {
   res.status(500).render('500', {
     pageTitle: 'Error!',
     path: '/500',
