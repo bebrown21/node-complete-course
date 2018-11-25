@@ -22,8 +22,8 @@
             <form action="/create-order" method="POST">
               <script
                 src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-                data-key="add_stripe_api_key_here"
-                data-amount="<%= totalSum * 100 %>"
+                data-key="api_key"
+                data-amount="<%= totalSum * 100%>"
                 data-name="Your Order"
                 data-description="All ordered items"
                 data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
