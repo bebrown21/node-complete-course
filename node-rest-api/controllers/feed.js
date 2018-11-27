@@ -186,7 +186,7 @@ exports.deletePost = (req, res, next) => {
         err.statusCode = 500;
       }
       next(err);
-    })
+    });
 };
 
 const clearImage = filePath => {
